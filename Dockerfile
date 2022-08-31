@@ -56,4 +56,13 @@ RUN set -ex && \
     mkdir /usr/local/cargo
 COPY --from=builder /usr/src/snarkOS/target/release/snarkos /aleo/bin/
 COPY --from=builder /usr/src/snarkOS/start /aleo/
-CMD ["/aleo/start"]
+
+ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.1/s6-overlay-amd64-installer /tmp/
+RUN chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer /
+RUN apt-get update -y && apt-get -y install openssh-server
+RUN ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
+ADD services.d/ssh /root/ssh.sh
+RUN chmod 755 /root/ssh.sh
+
+COPY run.sh run.sh
+CMD ./run.sh
